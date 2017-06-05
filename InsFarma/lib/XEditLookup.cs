@@ -288,7 +288,8 @@ namespace InsFarma
         {
             base.OnTextChanged(e);
             // Si canvia el text (per exemple quan el component està lligat a dades)
-            Clau = Text;
+            //if (Text != Clau)
+                Clau = Text;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -311,9 +312,15 @@ namespace InsFarma
             {
                 case Keys.Delete:
                 case Keys.Back:
-                    Clau = "";
+                    Text = "";
+                    //Clau = "";
                     break;
+//                default:
+                    //e.KeyCode = 0;
+                    //break;
             }
+            e.SuppressKeyPress = true;
+            //e.Handled = true;
         }
 
         private string CarregaText(string sClau)
