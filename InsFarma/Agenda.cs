@@ -12,11 +12,17 @@ namespace InsFarma
     /// </summary>
     public static class AgendaRecerca
     {
+        static string SQL =
+            " SELECT A.agenda_id, A.nom_comercial, A.nif, A.nom_fiscal, CA.nom AS Classificacio, A.es_client, A.es_proveidor, A.codi_postal, A.poblacio, A.adresa, A.provincia, A.pais, A.contacte, A.telefon1, A.telefon2, A.mobil1, A.mobil2, A.fax, A.web, A.email, A.observacions " +
+            " FROM AGENDA A " +
+            " LEFT JOIN CLASSIFICACIO_AGENDA CA ON(CA.classificacio_agenda_id = A.agenda_id) ";
+
         public static void Mostra(SqlConnection con)
         {
             XFormRecercaConstructor frm = new XFormRecercaConstructor(con, "AGENDA", "agenda_id", "nom_comercial,nom_fiscal");
             frm.AfegeixTitol("Agenda");
             frm.AfegeixFitxa(typeof(AgendaFitxa));
+            frm.AfegeixSQL(SQL);
             frm.Mostra();
         }
 
@@ -24,6 +30,7 @@ namespace InsFarma
         {
             XFormRecercaConstructor frm = new XFormRecercaConstructor(con, "AGENDA", "agenda_id", "nom_comercial,nom_fiscal");
             frm.AfegeixTitol("Agenda");
+            frm.AfegeixSQL(SQL);
             return frm.Busca();
         }
     }
@@ -53,6 +60,8 @@ namespace InsFarma
             frm.AfegeixCadena("NIF", "nif", 100);
             frm.AfegeixCadena("Nom fiscal", "nom_fiscal", 200, FormFitxaOpcions.Obligatori);
             frm.AfegeixLlistaDB("Classificació", "classificacio_agenda_id", 200, "CLASSIFICACIO_AGENDA", "classificacio_agenda_id", "nom", typeof(ClassificacioAgendaRecercaFitxa));
+            frm.AfegeixBoolea("Client", "es_client");
+            frm.AfegeixBoolea("Proveïdor", "es_proveidor");
         }
     }
 

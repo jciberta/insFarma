@@ -12,9 +12,6 @@ using System.Reflection;
 using System.Data.SqlClient;
 using System.Data.OleDb;
 
-// format de les classes. Agafar idees
-// http://stackoverflow.com/questions/1929020/using-windows-forms-combo-box-with-listkeyvaluepairuserenum-string-as-dataso?rq=1
-
 namespace InsFarma
 {
     [Flags]
@@ -161,6 +158,7 @@ namespace InsFarma
         private TextBox edtCerca = new TextBox();
         private Label lblCerca = new Label();
         private Type FClasseFitxa = null;
+        protected string SQL = "";
         public string ValorRetorn = "";
 
         /// <summary>
@@ -197,15 +195,6 @@ namespace InsFarma
             FDataGridView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             FDataGridView.CellDoubleClick += FDataGridView_CellDoubleClick;
 
-            // Components d'accés a base de dades
-            FSqlDataAdapter = new SqlDataAdapter(CreaSQL(), FConnexio);
-            FSqlDataAdapter.Fill(FDataSet, FTaula);
-            FBindingSource.DataSource = FDataSet.Tables[FTaula];
-            FDataGridView.DataSource = FBindingSource;
-            //FDataGridView.AutoGenerateColumns = false;
-            FDataSet.Tables[FTaula].Columns[FCampId].ColumnMapping = MappingType.Hidden;
-            //FDataGridView.Refresh();
-
             // Ordenació dels panells
             // http://stackoverflow.com/questions/154543/panel-dock-fill-ignoring-other-panel-dock-setting
             FBarraEines.BringToFront();
@@ -221,6 +210,7 @@ namespace InsFarma
             FModalitatFormulari = ModalitatFormulari.Mostra;
             if (FClasseFitxa == null)
                 tsbNou.Visible = false;
+            ExecutaSQL();
             FForm.Show();
         }
 
@@ -233,6 +223,7 @@ namespace InsFarma
             tsbNou.Visible = false;
             FForm.MdiParent = null;
             FForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            ExecutaSQL();
             FForm.ShowDialog();
             return ValorRetorn;
         }
@@ -255,6 +246,15 @@ namespace InsFarma
             this.FForm.Text = sTitol;
         }
 
+        /// <summary>
+        /// Afegeix la SQL a la recerca. Si no s'expecifica, la construeix per defecte.
+        /// </summary>
+        /// <param name="sTitol">SQL del formulari.</param>
+        public void AfegeixSQL(String sSQL)
+        {
+            this.SQL = sSQL;
+        }
+        
         /// <summary>
         /// Crea el panell de cerca.
         /// </summary>
@@ -378,23 +378,30 @@ namespace InsFarma
         }
 
         /// <summary>
-        /// Construeix la sentència SQL.
+        /// Construeix la sentència SQL, excepte si s'ha especificat amb AfegeixSQL.
         /// </summary>
         private string CreaSQL()
         {
-            string sSQL = " SELECT * FROM " + FTaula + " WHERE (0=0) ";
-            if (FCampsRecerca != "" && edtCerca.Text != "")
+            string sSQL;
+
+            if (SQL == "")
             {
-                sSQL += " AND ( ";
-                string[] asCampsRecerca = FCampsRecerca.Split(',');
-                for (int i = 0; i < asCampsRecerca.Length; i++)
+                sSQL = " SELECT * FROM " + FTaula + " WHERE (0=0) ";
+                if (FCampsRecerca != "" && edtCerca.Text != "")
                 {
-                    if (i != 0)
-                        sSQL += " OR ";
-                    sSQL += asCampsRecerca[i].Trim() + " LIKE '%" + edtCerca.Text + "%' ";
+                    sSQL += " AND ( ";
+                    string[] asCampsRecerca = FCampsRecerca.Split(',');
+                    for (int i = 0; i < asCampsRecerca.Length; i++)
+                    {
+                        if (i != 0)
+                            sSQL += " OR ";
+                        sSQL += asCampsRecerca[i].Trim() + " LIKE '%" + edtCerca.Text + "%' ";
+                    }
+                    sSQL += " ) ";
                 }
-                sSQL += " ) ";
             }
+            else
+                sSQL = SQL;
             return sSQL;
         }
 
@@ -460,6 +467,28 @@ namespace InsFarma
             x = 10;
             y = 14;
             iUltimaPosX = 0;
+        }
+
+        /// <summary>
+        /// Afegeix un camp booleà en forma de CheckBox.
+        /// </summary>
+        /// <param name="sTitol">Títol del camp.</param>
+        /// <param name="sCamp">Nom del camp (de la base de dades).</param>
+        /// <param name="ffo">Opcions.</param>
+        public void AfegeixBoolea(String sTitol, String sCamp, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
+        {
+            AfegeixEtiqueta(sTitol);
+
+            CheckBox cb = new CheckBox();
+            cb.DataBindings.Add("Checked", FBindingSource, sCamp, true);
+            cb.Left = x + 100;
+            cb.Top = y;
+            //tb.Width = iLongitud;
+            iUltimaPosX = x + cb.Width;
+            //            ComprovaPrimerElement(obj);
+            //            if not Encolumnat then
+            y = y + ALTURA_ENTRE_OBJECTES;
+            FForm.Controls.Add(cb);
         }
 
         public void AfegeixEtiqueta(String sTitol)
