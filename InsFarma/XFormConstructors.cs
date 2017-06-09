@@ -426,9 +426,19 @@ namespace InsFarma
     /// </summary>
     public class XFormFitxaSimpleConstructor : XFormConstructor
     {
-        private const int ALTURA_ENTRE_OBJECTES = 25;
+        private const int MARGE_DRET = 18;
+        private const int MARGE_ESQUERRE = 18;
+        private const int MARGE_SUPERIOR = 20 + 30; // tbMenu=30
+        private const int MARGE_INFERIOR = 16;
+        private const int MRGZONES = 8;
+        private const int ALTURA_BOTO = 25;
+        private const int AMPLADA_BOTO = 74;
+        private const int AMPLADA_ENTRE_ETIQUETA = 10; //< Amplada entre l'etiqueta (label) i l'objecte
+        private const int AMPLADA_ENTRE_OBJECTES = 20; //< Amplada entre 2 objectes
+        private const int ALTURA_ENTRE_OBJECTES = 24; //< Altura entre 2 objectes
 
         protected Form FForm;
+        protected Panel FPanel;
         private ModalitatFormulari FModalitatFormulari;
         protected SqlConnection FConnexio;
         protected String FTaula;
@@ -464,7 +474,11 @@ namespace InsFarma
             FTaula = sTaula;
             FCampId = sCampId;
 
-            x = 10;
+            FPanel = new Panel();
+            FPanel.Dock = DockStyle.Fill;
+            FForm.Controls.Add(FPanel);
+
+            x = MARGE_ESQUERRE;
             y = 14;
             iUltimaPosX = 0;
         }
@@ -488,7 +502,7 @@ namespace InsFarma
             //            ComprovaPrimerElement(obj);
             //            if not Encolumnat then
             y = y + ALTURA_ENTRE_OBJECTES;
-            FForm.Controls.Add(cb);
+            FPanel.Controls.Add(cb);
         }
 
         public void AfegeixEtiqueta(String sTitol)
@@ -498,7 +512,7 @@ namespace InsFarma
             lbl.Left = x;
             lbl.Top = y + 4;
             lbl.AutoSize = true;
-            FForm.Controls.Add(lbl);
+            FPanel.Controls.Add(lbl);
         }
 
         public void AfegeixCadena(String sTitol, String sCamp, int iLongitud, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
@@ -514,7 +528,7 @@ namespace InsFarma
             //            ComprovaPrimerElement(obj);
             //            if not Encolumnat then
             y = y + ALTURA_ENTRE_OBJECTES;
-            FForm.Controls.Add(tb);
+            FPanel.Controls.Add(tb);
         }
 
         public void AfegeixData(String sTitol, String sCamp, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
@@ -529,7 +543,7 @@ namespace InsFarma
             //            ComprovaPrimerElement(obj);
             //            if not Encolumnat then
             y = y + ALTURA_ENTRE_OBJECTES;
-            FForm.Controls.Add(tb);
+            FPanel.Controls.Add(tb);
         }
 
         /// <summary>
@@ -568,7 +582,7 @@ namespace InsFarma
             cb.DisplayMember = "value";
 
             y = y + ALTURA_ENTRE_OBJECTES;
-            FForm.Controls.Add(cb);
+            FPanel.Controls.Add(cb);
         }
 
         public void AfegeixLlistaDB(String sTitol, String sCamp, int iLongitud, String sTaula, String sCampClau, String sCampValor, Type ClasseRecerca, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
@@ -590,7 +604,91 @@ namespace InsFarma
             //            ComprovaPrimerElement(obj);
             //            if not Encolumnat then
             y = y + ALTURA_ENTRE_OBJECTES;
-            FForm.Controls.Add(eb);
+            FPanel.Controls.Add(eb);
+        }
+
+        private int AmpladaLabelMesLlarg(Panel pnl)
+        {
+            int i, iAmplada = 0;
+
+            for (i=0; i<FPanel.Controls.Count; i++)
+            {
+                if ((FPanel.Controls[i] is Label) && (FPanel.Controls[i].Left == MARGE_ESQUERRE) /*&& (FPanel.Controls[i].Tag == 0)*/)
+                    iAmplada = Math.Max(iAmplada, FPanel.Controls[i].Width);
+            }
+            /* 
+             *var
+    i: integer;
+begin
+    Result := 0;
+    // Cerquem el label més llarg de la 1a columna
+    for i := 0 to pnl.ControlCount - 1 do
+        if (pnl.Controls[i] is TLabel) and (TLabel(pnl.Controls[i]).Left = 0) and (TLabel(pnl.Controls[i]).Tag = 0) then
+            Result := Max(Result, TLabel(pnl.Controls[i]).Width);
+             */
+            return iAmplada;
+        }
+
+        private void GestionaGeometria()
+        {
+            int i, xMax, yMax, xPanelMax;
+
+            // Cerquem el label més llarg de la 1a columna
+            xMax = AmpladaLabelMesLlarg(FPanel);
+
+            // Desplacem els altres components la distància del label més llarg
+            xMax = xMax - 50;
+            for (i = 0; i < FPanel.Controls.Count; i++)
+                if (!((FPanel.Controls[i] is Label) && (FPanel.Controls[i]).Left == MARGE_ESQUERRE) && !(FPanel.Controls[i] is Panel)) {
+                    FPanel.Controls[i].Left = FPanel.Controls[i].Left + xMax + AMPLADA_ENTRE_ETIQUETA;
+                }
+
+            // Dimensiona la finestra
+            xMax = 0;
+            yMax = 0;
+            for (i = 0; i < FPanel.Controls.Count; i++)
+            {
+                xMax = Math.Max(xMax, FPanel.Controls[i].Left + FPanel.Controls[i].Width);
+                yMax = Math.Max(yMax, FPanel.Controls[i].Top + FPanel.Controls[i].Height);
+            }
+            FForm.Width = MARGE_DRET + xMax + MARGE_ESQUERRE + 8;
+            FForm.Height = MARGE_SUPERIOR + yMax + MARGE_INFERIOR + ALTURA_BOTO + MRGZONES + 32;
+                 
+
+
+            /*          var
+              i: integer;
+                      xMax, yMax, xPanelMax: integer;
+                      begin
+                          // Cerquem el label més llarg de la 1a columna
+                          xMax := AmpladaLabelMesLlarg(pnl);
+
+                  // Cerquem els panels que formen les columnes i els hi gestionem la geometria
+                  xPanelMax:= 0;
+                      for i := 0 to pnl.ControlCount - 1 do
+                              if (pnl.Controls[i] is TPanel) then
+                      if (TPanel(pnl.Controls[i]).Left = 0) then
+                          GestionaGeometriaPanel(TPanel(pnl.Controls[i]), xPanelMax, xMax)
+                      else
+                          GestionaGeometriaPanel(TPanel(pnl.Controls[i]), xPanelMax);
+
+                  // Desplacem els altres components la distància del label més llarg
+                  xMax:= xMax - 50;
+                      for i := 0 to pnl.ControlCount - 1 do
+                              if not((pnl.Controls[i] is TLabel) and(TLabel(pnl.Controls[i]).Left = 0)) and not (pnl.Controls[i] is TPanel) then
+
+                                pnl.Controls[i].Left := pnl.Controls[i].Left + xMax + AMPLADA_ENTRE_ETIQUETA;
+
+                  // Dimensiona la finestra
+                  xMax:= 0;
+                  yMax:= 0;
+                      for i := 0 to pnl.ControlCount - 1 do
+                              begin
+                                  xMax := Max(xMax, pnl.Controls[i].Left + pnl.Controls[i].Width);
+                  yMax:= Max(yMax, pnl.Controls[i].Top + pnl.Controls[i].Height);
+                      end;
+                  Width:= MARGE_DRET + xMax + MARGE_ESQUERRE + 8;
+                  Height:= MARGE_SUPERIOR + yMax + MARGE_INFERIOR + ALTURA_BOTO + MRGZONES + 32;*/
         }
 
         private void eb_Click(object sender, EventArgs e)
@@ -620,7 +718,7 @@ namespace InsFarma
             btnAccepta.Left = FForm.Width - 200;
             btnAccepta.Width = 75;
             btnAccepta.Top = FForm.Height - 80;
-            FForm.Controls.Add(btnAccepta);
+            FPanel.Controls.Add(btnAccepta);
             btnAccepta.Click += btnAccepta_Click;
 
             Button btnCancella = new Button();
@@ -628,7 +726,7 @@ namespace InsFarma
             btnCancella.Left = FForm.Width - 100;
             btnCancella.Width = 75;
             btnCancella.Top = FForm.Height - 80;
-            FForm.Controls.Add(btnCancella);
+            FPanel.Controls.Add(btnCancella);
             btnCancella.Click += btnCancella_Click;
         }
 
@@ -655,6 +753,7 @@ namespace InsFarma
         public void Mostra(int id)
         {
             FModalitatFormulari = ModalitatFormulari.Mostra;
+            GestionaGeometria();
             CreaBotons();
 
             FSqlDataAdapter = new SqlDataAdapter("SELECT * FROM " + FTaula + " WHERE " + FCampId + "=" + id.ToString(), FConnexio);
@@ -667,6 +766,7 @@ namespace InsFarma
         public void Alta()
         {
             FModalitatFormulari = ModalitatFormulari.Alta;
+            GestionaGeometria();
             CreaBotons();
 
             FSqlDataAdapter = new SqlDataAdapter("SELECT * FROM " + FTaula + " WHERE 0=1", FConnexio);
