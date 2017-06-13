@@ -51,7 +51,8 @@ namespace InsFarma
         private static void CreaUI(XFormFitxaSimpleConstructor frm)
         {
             frm.AfegeixCadena("Referència", "referencia", 100);
-            frm.AfegeixCadena("Descripció", "descripcio", 200, FormFitxaOpcions.Obligatori);
+            frm.AfegeixCadena("Descripció", "descripcio", 200, FormFitxaOpcions.Obligatori | FormFitxaOpcions.AlCostat);
+            frm.AfegeixEspai();
             frm.AfegeixData("Data alta", "data_alta");
             frm.AfegeixLlistaDB("Família", "familia_article_id", 200, "FAMILIA_ARTICLE", "familia_article_id", "descripcio", typeof(FamiliaArticleRecercaFitxa));
             frm.AfegeixLlistaDB("Marca", "marca_article_id", 200, "MARCA_ARTICLE", "marca_article_id", "descripcio", typeof(MarcaArticleRecercaFitxa));

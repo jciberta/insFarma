@@ -491,7 +491,7 @@ namespace InsFarma
         /// <param name="ffo">Opcions.</param>
         public void AfegeixBoolea(String sTitol, String sCamp, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
         {
-            AfegeixEtiqueta(sTitol);
+            AfegeixEtiqueta(sTitol, ffo);
 
             CheckBox cb = new CheckBox();
             cb.DataBindings.Add("Checked", FBindingSource, sCamp, true);
@@ -505,19 +505,38 @@ namespace InsFarma
             FPanel.Controls.Add(cb);
         }
 
-        public void AfegeixEtiqueta(String sTitol)
+        public void AfegeixEtiqueta(String sTitol, FormFitxaOpcions ffo = FormFitxaOpcions.Cap, int iTag = 0)
         {
+            if ((ffo & FormFitxaOpcions.AlCostat) == FormFitxaOpcions.AlCostat)
+            {
+                x = iUltimaPosX;
+                // Si no hi ha label, no cal tant d'espai
+                if (sTitol != "")
+                    x = x + AMPLADA_ENTRE_OBJECTES;
+                y = y - ALTURA_ENTRE_OBJECTES;
+            }
+            else
+                x = 0;
+
             Label lbl = new Label();
             lbl.Text = sTitol;
             lbl.Left = x;
             lbl.Top = y + 4;
             lbl.AutoSize = true;
             FPanel.Controls.Add(lbl);
+
+            if ((ffo & FormFitxaOpcions.AlCostat) == FormFitxaOpcions.AlCostat)
+            {
+                SizeF size = lbl.CreateGraphics().MeasureString(lbl.Text, lbl.Font);
+                x = x + (int)size.Width + AMPLADA_ENTRE_ETIQUETA;
+            }
+            else
+                x = x + 50;
         }
 
         public void AfegeixCadena(String sTitol, String sCamp, int iLongitud, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
         {
-            AfegeixEtiqueta(sTitol);
+            AfegeixEtiqueta(sTitol, ffo);
 
             TextBox tb = new TextBox();
             tb.DataBindings.Add("Text", FBindingSource, sCamp, true);
@@ -533,7 +552,7 @@ namespace InsFarma
 
         public void AfegeixData(String sTitol, String sCamp, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
         {
-            AfegeixEtiqueta(sTitol);
+            AfegeixEtiqueta(sTitol, ffo);
 
             DateTimePicker tb = new DateTimePicker();
             tb.DataBindings.Add("Text", FBindingSource, sCamp, true);
@@ -547,6 +566,15 @@ namespace InsFarma
         }
 
         /// <summary>
+        /// Afegeix un espai vertical entre els controls.
+        /// </summary>
+        /// <param name="iEspai">Espai en píxels.</param>
+        public void AfegeixEspai(int iEspai = ALTURA_ENTRE_OBJECTES)
+        {
+            y = y + iEspai;
+        }
+
+        /// <summary>
         /// Afegeix un desplegable amb una llista d'opcions. Les opcions tenen el format clau-valor.
         /// </summary>
         /// <param name="sTitol">Etiqueta del desplegable.</param>
@@ -556,7 +584,7 @@ namespace InsFarma
         /// <param name="Codis">Llista de valors que es mostraran al desplegable.</param>
         public void AfegeixLlista(String sTitol, String sCamp, int iLongitud, int[] Codis, string[] Valors, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
         {
-            AfegeixEtiqueta(sTitol);
+            AfegeixEtiqueta(sTitol, ffo);
 
             ComboBox cb = new ComboBox();
             cb.DataBindings.Add(new Binding("SelectedValue", FBindingSource, sCamp, true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
@@ -587,7 +615,7 @@ namespace InsFarma
 
         public void AfegeixLlistaDB(String sTitol, String sCamp, int iLongitud, String sTaula, String sCampClau, String sCampValor, Type ClasseRecerca, FormFitxaOpcions ffo = FormFitxaOpcions.Cap)
         {
-            AfegeixEtiqueta(sTitol);
+            AfegeixEtiqueta(sTitol, ffo);
 
             XEditLookup eb = new XEditLookup();
             eb.Connexio = FConnexio;
@@ -639,7 +667,7 @@ begin
             // Desplacem els altres components la distància del label més llarg
             xMax = xMax - 50;
             for (i = 0; i < FPanel.Controls.Count; i++)
-                if (!((FPanel.Controls[i] is Label) && (FPanel.Controls[i]).Left == MARGE_ESQUERRE) && !(FPanel.Controls[i] is Panel)) {
+                if (!((FPanel.Controls[i] is Label) && (FPanel.Controls[i]).Left == 0) && !(FPanel.Controls[i] is Panel)) {
                     FPanel.Controls[i].Left = FPanel.Controls[i].Left + xMax + AMPLADA_ENTRE_ETIQUETA;
                 }
 
